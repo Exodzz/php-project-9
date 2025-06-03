@@ -5,8 +5,12 @@ start:
 
 install:
 	composer install
+
 validate:
 	composer validate --strict
 
 lint:
 	composer exec --verbose phpcs -- --standard=PSR12 app public
+
+lint-fix:
+	@composer exec --verbose phpcbf -- --standard=PSR12 app public
