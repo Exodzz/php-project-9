@@ -116,7 +116,7 @@ class Connection
      */
     public function createUrlCheck(int $urlId, array $checkData): int
     {
-        $sql = "INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at) 
+        $sql = "INSERT INTO urls_checks (url_id, status_code, h1, title, description, created_at) 
                 VALUES (:url_id, :status_code, :h1, :title, :description, :created_at) 
                 RETURNING id";
         $stmt = $this->pdo->prepare($sql);
@@ -138,7 +138,7 @@ class Connection
      */
     public function getUrlChecks(int $urlId): array
     {
-        $sql = "SELECT * FROM url_checks WHERE url_id = :url_id ORDER BY created_at DESC";
+        $sql = "SELECT * FROM urls_checks WHERE url_id = :url_id ORDER BY created_at DESC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['url_id' => $urlId]);
         return $stmt->fetchAll();
@@ -151,7 +151,7 @@ class Connection
      */
     public function getLastUrlCheck(int $urlId)
     {
-        $sql = "SELECT * FROM url_checks WHERE url_id = :url_id ORDER BY created_at DESC LIMIT 1";
+        $sql = "SELECT * FROM urls_checks WHERE url_id = :url_id ORDER BY created_at DESC LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['url_id' => $urlId]);
         return $stmt->fetch();

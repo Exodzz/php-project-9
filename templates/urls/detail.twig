@@ -2,21 +2,21 @@
 {% block body %}
     <main class="flex-grow-1">
         <div class="container-lg mt-3">
-            <h1>Сайт: http://success.local</h1>
+            <h1>Сайт: {{ url.name }}</h1>
             <div class="table-responsive">
                 <table class="table table-bordered table-hover text-nowrap" data-test="url">
                     <tbody>
                     <tr>
                         <td>ID</td>
-                        <td>14</td>
+                        <td>{{ url.id }}</td>
                     </tr>
                     <tr>
                         <td>Имя</td>
-                        <td>http://success.local</td>
+                        <td>{{ url.name }}</td>
                     </tr>
                     <tr>
                         <td>Дата создания</td>
-                        <td>2025-05-10 22:18:35</td>
+                        <td>{{ url.created_at }}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -37,14 +37,16 @@
                 </tr>
                 </thead>
                 <tbody>
+                {% for check in checks %}
                 <tr>
-                    <td>40</td>
-                    <td>200</td>
-                    <td>Do not expect a miracle, miracles yourself!</td>
-                    <td>Awesome page</td>
-                    <td>Statements of great people</td>
-                    <td>2025-05-10 22:18:39</td>
+                    <td>{{ check.id }}</td>
+                    <td>{{ check.status_code }}</td>
+                    <td>{{ check.h1 }}</td>
+                    <td>{{ check.title }}</td>
+                    <td>{{ check.description }}</td>
+                    <td>{{ check.created_at }}</td>
                 </tr>
+                {% endfor %}
                 </tbody>
             </table>
         </div>
