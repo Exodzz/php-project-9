@@ -5,6 +5,7 @@
         <div class="container-lg mt-3">
             <h1>Сайты</h1>
             <div class="table-responsive">
+                {% if(urls) %}
                 <table class="table table-bordered table-hover text-nowrap" data-test="urls">
                     <thead>
                     <tr>
@@ -19,15 +20,21 @@
                         <tr>
                             <td>{{ url.id }}</td>
                             <td>
-                                <a href="{{ url.name }}">
+                                <a href="/urls/{{ url.id}}">
                                     {{ url.name }} </a>
                             </td>
-                            <td>{{ url.check.created_at }}</td>
-                            <td>{{ url.check.status_code }}</td>
+                            <td>{{ url.check.created_at|default('') }}</td>
+                            <td>{{ url.check.status_code|default('') }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
+                {% else %}
+                    <div class="col-md-6 offset-md-3 text-center">
+                        <h2 class="mb-4">Вы ещё не добавили не одного сайта</h2>
+                        <a href="/" class="btn btn-primary">Вернуться на главную</a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </main>

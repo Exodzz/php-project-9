@@ -6,13 +6,16 @@ error_reporting(E_ALL);
 // Подключение автозагрузки через composer
 require __DIR__ . '/../vendor/autoload.php';
 
-use Hexlet\Code\Connection;
 use Hexlet\Code\Controllers\UrlController;
+use Slim\Exception\HttpNotFoundException;
 use Slim\Factory\AppFactory;
 use Twig\Environment;
+use Twig\Extension\DebugExtension;
 use Twig\Loader\FilesystemLoader;
 use DI\Container;
-use GuzzleHttp\Client;
+use Psr\Http\Message\ServerRequestInterface as Request;
+
+session_start();
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->safeload();
@@ -20,17 +23,34 @@ $dotenv->safeload();
 $container = new Container();
 AppFactory::setContainer($container);
 
-$PDO = new Connection();
 $app = AppFactory::create();
 $loader = new FilesystemLoader(__DIR__ . '/../templates');
-$view = new Environment($loader);
+$twig = new Environment($loader);
+$urlController = new UrlController($twig, $app);
 
-$urlController = new UrlController($view);
 
+foreach ($urlController::ROUT_LIST as $routName => $rout) {
+    $method = $rout['type'];
+    $app->$method($rout['path'], [$urlController, $rout['method']])->setName($routName);
 
-$app->get('/', [$urlController, 'index'])->setName('main');
-$app->get('/urls', [$urlController, 'list'])->setName('url.index');
-$app->get('/urls/{id}', [$urlController, 'show'])->setName('urls.show');
-$app->post('/urls/{id}/check', [$urlController, 'show'])->setName('urls.checks');
+}
+
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+$errorMiddleware->setErrorHandler(
+    HttpNotFoundException::class,
+    function (
+        Request   $request,
+        Throwable $exception,
+        bool      $displayErrorDetails,
+        bool      $logErrors,
+        bool      $logErrorDetails
+    ) use ($twig) {
+        $response = new \Slim\Psr7\Response();
+        $body = $twig->render('404.twig');
+        $response->getBody()->write($body);
+        return $response->withStatus(404);
+    }
+);
 
 $app->run();

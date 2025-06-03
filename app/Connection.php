@@ -63,6 +63,10 @@ class Connection
      */
     public function createUrl(string $name): int
     {
+        $double =$this->getUrlByName($name);
+        if($double){
+            throw new \RuntimeException('The site already exists');
+        }
         $sql = "INSERT INTO urls (name, created_at) VALUES (:name, :created_at) RETURNING id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
