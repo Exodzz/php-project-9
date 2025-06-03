@@ -1,0 +1,52 @@
+{% extends 'base.twig' %}
+{% block body %}
+    <main class="flex-grow-1">
+        <div class="container-lg mt-3">
+            <h1>Сайт: http://success.local</h1>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover text-nowrap" data-test="url">
+                    <tbody>
+                    <tr>
+                        <td>ID</td>
+                        <td>14</td>
+                    </tr>
+                    <tr>
+                        <td>Имя</td>
+                        <td>http://success.local</td>
+                    </tr>
+                    <tr>
+                        <td>Дата создания</td>
+                        <td>2025-05-10 22:18:35</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h2 class="mt-5 mb-3">Проверки</h2>
+            <form method="post" action="/urls/14/checks">
+                <input type="submit" class="btn btn-primary" value="Запустить проверку">
+            </form>
+            <table class="table table-bordered table-hover" data-test="checks">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Код ответа</th>
+                    <th>h1</th>
+                    <th>title</th>
+                    <th>description</th>
+                    <th>Дата создания</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>40</td>
+                    <td>200</td>
+                    <td>Do not expect a miracle, miracles yourself!</td>
+                    <td>Awesome page</td>
+                    <td>Statements of great people</td>
+                    <td>2025-05-10 22:18:39</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+{% endblock %}
