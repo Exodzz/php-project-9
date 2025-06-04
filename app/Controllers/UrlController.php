@@ -102,12 +102,12 @@ class UrlController
                 'main'   => true,
             ]);
             $response->getBody()->write($body);
+            return $response->withStatus(422);
         } else {
             try {
                 $id = $this->db->createUrl((string)$urls['name']);
                 $this->app->getContainer()->get('flash')
                     ->addMessage('success', 'Страница успешно добавлена');
-
                 return $this->redirectToRoute('urls.show', ['id' => $id]);
             } catch (\Exception | \RuntimeException $exception) {
                 $this->app->getContainer()->get('flash')
@@ -117,7 +117,6 @@ class UrlController
                 return $this->redirectToRoute('urls.show', ['id' => $id]);
             }
         }
-        return $response;
     }
 
     public function list(Request $request, Response $response): Response
