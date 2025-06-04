@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS urls_checks (
     url_id bigint REFERENCES urls (id),
     status_code int,
     h1 varchar(255),
-    title varchar(255),
-    description varchar(255),
+    title text,
+    description text,
     created_at timestamp);
 
 INSERT INTO urls (name, created_at)
