@@ -60,9 +60,7 @@ class UrlController
         $this->app = $app;
         $this->db = new Connection();
         $container = $this->app->getContainer();
-        if (!$container instanceof Container) {
-            throw new \RuntimeException('Container is not initialized or has wrong type');
-        }
+
         $this->setFlash($container);
     }
 

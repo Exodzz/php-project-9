@@ -19,6 +19,7 @@ session_start();
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->safeload();
 
+/** @var Container $container */
 $container = new Container();
 AppFactory::setContainer($container);
 
@@ -26,7 +27,7 @@ $container->set('flash', function () {
     return new Messages();
 });
 
-/** @var \Slim\App<ContainerInterface> $app */
+/** @var \Slim\App<Container> $app */
 $app = AppFactory::create();
 $loader = new FilesystemLoader(__DIR__ . '/../templates');
 $twig = new Environment($loader, [
