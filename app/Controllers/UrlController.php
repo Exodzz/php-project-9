@@ -85,7 +85,7 @@ class UrlController
 
     public function add(Request $request, Response $response): Response
     {
-        $urls = $request->getParsedBody();
+        $urls = $request->getParsedBody()['url'];
         $validation = new Validator(
             [
                 'name'  => $urls['name'] ?? '',
@@ -94,33 +94,30 @@ class UrlController
         );
         $validation->rule('required', 'name')
             ->rule('lengthMax', 'count.*', 255)
-            ->rule('url', 'name');
+            ->rule('url', 'name','');
         if (!$validation->validate()) {
-            foreach ($validation->errors('name') as $message) {
+            $this->app->getContainer()->get('flash')
+                ->addMessageNow('danger', 'Некорректный URL');
+            $body = $this->render('index.twig', [
+                'main'   => true,
+            ]);
+            $response->getBody()->write($body);
+        } else {
+            try {
+                $id = $this->db->createUrl((string)$urls['name']);
                 $this->app->getContainer()->get('flash')
-                    ->addMessageNow('danger', $message);
-            }
-            $body = $this->render('index.twig', [
-                'main'   => true,
-            ]);
-            $response->getBody()->write($body);
-            return $response->withStatus(422);
-        }
+                    ->addMessage('success', 'Страница успешно добавлена');
 
-        try {
-            $this->db->createUrl((string)$urls['name']);
-            $this->app->getContainer()->get('flash')
-                ->addMessage('success', 'Add is success!');
-            return $this->redirectToRoute('url.index');
-        } catch (\Exception | \RuntimeException $exception) {
-            $this->app->getContainer()->get('flash')
-                ->addMessageNow('danger', $exception->getMessage());
-            $body = $this->render('index.twig', [
-                'main'   => true,
-            ]);
-            $response->getBody()->write($body);
-            return $response->withStatus(422);
+                return $this->redirectToRoute('urls.show', ['id' => $id]);
+            } catch (\Exception | \RuntimeException $exception) {
+                $this->app->getContainer()->get('flash')
+                    ->addMessage('danger', 'Страница уже существует');
+                $id = $exception->getMessage();
+            } finally {
+                return $this->redirectToRoute('urls.show', ['id' => $id]);
+            }
         }
+        return $response;
     }
 
     public function list(Request $request, Response $response): Response
