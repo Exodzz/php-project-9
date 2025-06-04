@@ -30,11 +30,11 @@ class Connection
         }
 
         if (isset($_ENV['host'])) {
-            $params['host'] = $database['host'];
-            $params['port'] = isset($database['port']) ? $database['port'] : null;
+            $params['host'] = $database['host']??null;
+            $params['port'] = $database['port'] ?? 5432;
             $params['database'] = isset($database['database']) ? ltrim($database['database'], '/') : null;
-            $params['user'] = isset($database['user']) ? $database['user'] : null;
-            $params['password'] = isset($database['password']) ? $database['password'] : null;
+            $params['user'] = $database['user'] ?? null;
+            $params['password'] = $database['password'] ?? null;
         } else {
         // чтение параметров в файле конфигурации
             $params = parse_url($_ENV['DATABASE_URL']);
