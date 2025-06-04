@@ -56,19 +56,25 @@ class UrlController
         });
     }
 
+    private function render(string $template, array $data = []): string
+    {
+        $flash = $this->app->getContainer()->get('flash');
+        $data['flash'] = $flash->getMessages();
+        dump($data);
+        return $this->view->render($template, $data);
+    }
+
     public function index(Request $request, Response $response): Response
     {
-        $body = $this->view->render('index.twig', ['main' => true]);
+        $body = $this->render('index.twig', ['main' => true]);
         $response->getBody()->write($body);
-        $this->app->getContainer()->get('flash')
-            ->addMessage('warning', 'Проверка была выполнена успешно, но сервер ответил с ошибкой');
-        dump($this->app->getContainer()->get('flash'));
+        $this->app->getContainer()->get('flash');
+
         return $response;
     }
 
     public function add(Request $request, Response $response): Response
     {
-
         $urls = $request->getParsedBody();
         $validation = new Validator(
             [
@@ -80,29 +86,34 @@ class UrlController
             ->rule('lengthMax', 'count.*', 255)
             ->rule('url', 'name');
         if (!$validation->validate()) {
-            $body = $this->view->render('index.twig', [
+            foreach ($validation->errors('name') as $message){
+                $this->app->getContainer()->get('flash')
+                    ->addMessage('danger',$message);
+            }
+
+            $body = $this->render('index.twig', [
                 'main'   => true,
-                'errors' => $validation->errors('name')
             ]);
             $response->getBody()->write($body);
         } else {
             try {
                 $this->db->createUrl((string)$urls['name']);
+                $this->app->getContainer()->get('flash')
+                    ->addMessage('success', 'Страница успешно добавлена');
             } catch (\Exception | \RuntimeException $exception) {
-                $body = $this->view->render('index.twig', [
+                $this->app->getContainer()->get('flash')
+                    ->addMessage('danger',$exception->getMessage());
+                $body = $this->render('index.twig', [
                     'main'   => true,
-                    'errors' => [$exception->getMessage()]
                 ]);
                 $response->getBody()->write($body);
                 return $response;
             }
 
-
             $response = $this->list($request, $response);
         }
         return $response;
     }
-
 
     public function list(Request $request, Response $response): Response
     {
@@ -110,7 +121,7 @@ class UrlController
         foreach ($urls as &$url) {
             $url['check'] = $this->db->getLastUrlCheck($url['id']);
         }
-        $body = $this->view->render('urls/index.twig', [
+        $body = $this->render('urls/index.twig', [
             'urls'  => $urls,
             'title' => 'Сайты'
         ]);
@@ -132,7 +143,7 @@ class UrlController
         }
 
         $checks = $this->db->getUrlChecks($id);
-        $body = $this->view->render('urls/detail.twig', [
+        $body = $this->render('urls/detail.twig', [
             'url'    => $url,
             'checks' => $checks
         ]);
@@ -148,7 +159,7 @@ class UrlController
     public function notFound(Response $response): Response
     {
         $response = $response->withStatus(404);
-        $body = $this->view->render('404.twig');
+        $body = $this->render('404.twig');
         $response->getBody()->write($body);
         return $response;
     }

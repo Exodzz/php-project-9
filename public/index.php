@@ -1,8 +1,5 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 // Подключение автозагрузки через composer
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -25,7 +22,11 @@ AppFactory::setContainer($container);
 
 $app = AppFactory::create();
 $loader = new FilesystemLoader(__DIR__ . '/../templates');
-$twig = new Environment($loader);
+$twig = new Environment($loader, [
+    'debug' => true,
+    'cache'=>false
+]);
+$twig->addExtension(new DebugExtension());
 $urlController = new UrlController($twig, $app);
 
 
@@ -39,11 +40,11 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 $errorMiddleware->setErrorHandler(
     HttpNotFoundException::class,
     function (
-        Request $request,
+        Request   $request,
         Throwable $exception,
-        bool $displayErrorDetails,
-        bool $logErrors,
-        bool $logErrorDetails
+        bool      $displayErrorDetails,
+        bool      $logErrors,
+        bool      $logErrorDetails
     ) use ($twig) {
         $response = new \Slim\Psr7\Response();
         $body = $twig->render('404.twig');

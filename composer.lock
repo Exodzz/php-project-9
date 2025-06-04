@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8631bc019adbc4e15bc61031827c0436",
+    "content-hash": "4036cbdaa69f9c65bcb129bfd571acba",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -933,6 +933,65 @@
                 "source": "https://github.com/Imangazaliev/DiDOM/tree/2.0.1"
             },
             "time": "2023-03-05T03:23:48+00:00"
+        },
+        {
+            "name": "kanellov/slim-twig-flash",
+            "version": "0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kanellov/slim-twig-flash.git",
+                "reference": "14a96919cfb116aa528b6ce9a611f544ac6d6a01"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kanellov/slim-twig-flash/zipball/14a96919cfb116aa528b6ce9a611f544ac6d6a01",
+                "reference": "14a96919cfb116aa528b6ce9a611f544ac6d6a01",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.0",
+                "slim/flash": ">=0.1.0",
+                "twig/twig": ">=1.18"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "1.*",
+                "phpunit/phpcov": "2.*",
+                "phpunit/phpunit": "4.8.0",
+                "satooshi/php-coveralls": "dev-master"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Knlv\\Slim\\Views\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GNU GPLv3"
+            ],
+            "authors": [
+                {
+                    "name": "Vassilis Kanellopoulos",
+                    "email": "contact@kanellov.com",
+                    "homepage": "http://kanellov.com"
+                }
+            ],
+            "description": "A Twig extension to access Slim Flash messages in templates",
+            "keywords": [
+                "extension",
+                "flash",
+                "framework",
+                "message",
+                "provider",
+                "slim",
+                "twig",
+                "view"
+            ],
+            "support": {
+                "issues": "https://github.com/kanellov/slim-twig-flash/issues",
+                "source": "https://github.com/kanellov/slim-twig-flash/tree/0.2.0"
+            },
+            "time": "2016-12-29T22:07:19+00:00"
         },
         {
             "name": "laracasts/flash",
