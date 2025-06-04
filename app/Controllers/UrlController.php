@@ -2,6 +2,7 @@
 
 namespace Hexlet\Code\Controllers;
 
+use DI\Container;
 use Hexlet\Code\Checker;
 use Hexlet\Code\Connection;
 use Psr\Container\ContainerInterface;
@@ -44,14 +45,14 @@ class UrlController
             'method' => 'check',
         ]
     ];
-    /** @var App<ContainerInterface> */
+    /** @var App */
     public App $app;
     private Environment $view;
     private Connection $db;
     private Messages $flash;
 
     /**
-     * @param App<ContainerInterface> $app
+     * @param App $app
      */
     public function __construct(Environment $view, App $app)
     {
@@ -59,13 +60,10 @@ class UrlController
         $this->app = $app;
         $this->db = new Connection();
         $container = $this->app->getContainer();
-        if (!$container instanceof ContainerInterface) {
-            throw new \RuntimeException('Container is not initialized');
-        }
         $this->setFlash($container);
     }
 
-    private function setFlash(ContainerInterface $container)
+    private function setFlash( Container $container)
     {
         $this->flash = new Messages();
         $container->set('flash', function () {
