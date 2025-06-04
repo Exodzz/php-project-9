@@ -15,7 +15,7 @@ use Valitron\Validator;
 
 class UrlController
 {
-    const ROUT_LIST = [
+    public const ROUT_LIST = [
         'main'        => [
             'path'   => '/',
             'type'   => 'get',
