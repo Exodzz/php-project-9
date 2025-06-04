@@ -32,29 +32,27 @@ class Connection
                 throw new Exception('Invalid DATABASE_URL format');
             }
             $params = [
-                'host' => $databaseUrl['host'] ?? '',
+                'host' => $databaseUrl['host'],
                 'port' => $databaseUrl['port'] ?? 5432,
-                'database' => ltrim($databaseUrl['path'] ?? '', '/'),
-                'user' => $databaseUrl['user'] ?? '',
-                'pass' => $databaseUrl['pass'] ?? ''
+                'database' => ltrim($databaseUrl['path'], '/'),
+                'user' => $databaseUrl['user'],
+                'pass' => $databaseUrl['pass']
             ];
         } elseif (isset($_ENV['host'])) {
             $params = [
-                'host' => $_ENV['host'] ?? '',
+                'host' => $_ENV['host'],
                 'port' => $_ENV['port'] ?? 5432,
                 'database' => isset($_ENV['database']) ? ltrim($_ENV['database'], '/') : '',
                 'user' => $_ENV['user'] ?? '',
                 'pass' => $_ENV['password'] ?? $_ENV['pass'] ?? ''
             ];
         } else {
-            // чтение параметров в файле конфигурации
             $params = parse_ini_file(__DIR__ . '/../database.env');
             if ($params === false) {
                 throw new Exception('Failed to parse database.env file');
             }
         }
 
-        // проверка обязательных параметров
         $requiredParams = ['host', 'database', 'user', 'pass'];
         foreach ($requiredParams as $param) {
             if (empty($params[$param])) {
@@ -62,7 +60,6 @@ class Connection
             }
         }
 
-        // подключение к базе данных postgresql
         $conStr = sprintf(
             "pgsql:host=%s;port=%d;dbname=%s;user=%s;password=%s",
             $params['host'],
