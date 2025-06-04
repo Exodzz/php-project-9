@@ -59,8 +59,12 @@ class Checker
             $dom = new DOMDocument();
             @$dom->loadHTML($html, LIBXML_NOERROR);
             $xpath = new DOMXPath($dom);
-            $h1 = $xpath->query('//h1')->item(0);
-            return $h1 ? trim($h1->textContent) : null;
+            $h1List = $xpath->query('//h1');
+            if ($h1List === false) {
+                return null;
+            }
+            $h1 = $h1List->item(0);
+            return $h1 instanceof \DOMNode ? trim($h1->textContent) : null;
         } catch (\Exception $e) {
             $this->errors[] = "Ошибка при получении h1: {$e->getMessage()}";
             return null;
@@ -73,8 +77,12 @@ class Checker
             $dom = new DOMDocument();
             @$dom->loadHTML($html, LIBXML_NOERROR);
             $xpath = new DOMXPath($dom);
-            $title = $xpath->query('//title')->item(0);
-            return $title ? trim($title->textContent) : null;
+            $titleList = $xpath->query('//title');
+            if ($titleList === false) {
+                return null;
+            }
+            $title = $titleList->item(0);
+            return $title instanceof \DOMNode ? trim($title->textContent) : null;
         } catch (\Exception $e) {
             $this->errors[] = "Ошибка при получении title: {$e->getMessage()}";
             return null;
@@ -87,8 +95,15 @@ class Checker
             $dom = new DOMDocument();
             @$dom->loadHTML($html, LIBXML_NOERROR);
             $xpath = new DOMXPath($dom);
-            $meta = $xpath->query('//meta[@name="description"]')->item(0);
-            return $meta ? trim($meta->getAttribute('content')) : null;
+            $metaList = $xpath->query('//meta[@name="description"]');
+            if ($metaList === false) {
+                return null;
+            }
+            $meta = $metaList->item(0);
+            if (!$meta instanceof \DOMElement) {
+                return null;
+            }
+            return trim($meta->getAttribute('content'));
         } catch (\Exception $e) {
             $this->errors[] = "Ошибка при получении description: {$e->getMessage()}";
             return null;

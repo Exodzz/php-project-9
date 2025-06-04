@@ -14,3 +14,8 @@ lint:
 
 lint-fix:
 	@composer exec --verbose phpcbf -- --standard=PSR12 app public
+
+php-stan:
+	@composer exec --verbose phpstan analyse -l 5 -c phpstan.neon ./app ./public
+
+#    @composer exec --verbose phpstan analyse -l 5 -c phpstan.neon app public

@@ -4,6 +4,7 @@ namespace Hexlet\Code;
 
 use Exception;
 use PDO;
+use PDOStatement;
 
 /**
  * Создание класса Connection
@@ -23,28 +24,42 @@ class Connection
      * @return PDO
      * @throws Exception
      */
-    public function connect()
+    public function connect(): PDO
     {
         if (isset($_ENV['DATABASE_URL'])) {
             $databaseUrl = parse_url($_ENV['DATABASE_URL']);
+            if ($databaseUrl === false) {
+                throw new Exception('Invalid DATABASE_URL format');
+            }
             $params = [
-                'host' => $databaseUrl['host'],
+                'host' => $databaseUrl['host'] ?? '',
                 'port' => $databaseUrl['port'] ?? 5432,
-                'database' => ltrim($databaseUrl['path'], '/'),
-                'user' => $databaseUrl['user'],
-                'pass' => $databaseUrl['pass']
+                'database' => ltrim($databaseUrl['path'] ?? '', '/'),
+                'user' => $databaseUrl['user'] ?? '',
+                'pass' => $databaseUrl['pass'] ?? ''
             ];
         } elseif (isset($_ENV['host'])) {
             $params = [
-                'host' => $_ENV['host'] ?? null,
+                'host' => $_ENV['host'] ?? '',
                 'port' => $_ENV['port'] ?? 5432,
-                'database' => isset($_ENV['database']) ? ltrim($_ENV['database'], '/') : null,
-                'user' => $_ENV['user'] ?? null,
-                'pass' => $_ENV['password'] ?: $_ENV['pass']
+                'database' => isset($_ENV['database']) ? ltrim($_ENV['database'], '/') : '',
+                'user' => $_ENV['user'] ?? '',
+                'pass' => $_ENV['password'] ?? $_ENV['pass'] ?? ''
             ];
         } else {
             // чтение параметров в файле конфигурации
             $params = parse_ini_file(__DIR__ . '/../database.env');
+            if ($params === false) {
+                throw new Exception('Failed to parse database.env file');
+            }
+        }
+
+        // проверка обязательных параметров
+        $requiredParams = ['host', 'database', 'user', 'pass'];
+        foreach ($requiredParams as $param) {
+            if (empty($params[$param])) {
+                throw new Exception("Missing required database parameter: {$param}");
+            }
         }
 
         // подключение к базе данных postgresql
@@ -67,6 +82,7 @@ class Connection
     /**
      * Проверка наличия таблиц и их импорт при необходимости
      * @return void
+     * @throws Exception
      */
     public function importDB(): void
     {
@@ -75,13 +91,22 @@ class Connection
 
         $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'";
         $result = $this->pdo->query($sql);
+        if ($result === false) {
+            throw new Exception('Failed to query database tables');
+        }
         while ($row = $result->fetch()) {
             $existingTables[] = $row['table_name'];
         }
 
         if (count(array_diff($tables, $existingTables)) > 0) {
             $sql = file_get_contents(__DIR__ . '/../database.sql');
-            $this->pdo->exec($sql);
+            if ($sql === false) {
+                throw new Exception('Failed to read database.sql file');
+            }
+            $result = $this->pdo->exec($sql);
+            if ($result === false) {
+                throw new Exception('Failed to execute database.sql');
+            }
         }
     }
 
@@ -89,6 +114,7 @@ class Connection
      * Создание новой записи URL
      * @param string $name
      * @return int
+     * @throws Exception
      */
     public function createUrl(string $name): int
     {
@@ -98,11 +124,18 @@ class Connection
         }
         $sql = "INSERT INTO urls (name, created_at) VALUES (:name, :created_at) RETURNING id";
         $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            throw new Exception('Failed to prepare SQL statement');
+        }
         $stmt->execute([
             'name' => $name,
             'created_at' => date('Y-m-d H:i:s')
         ]);
-        return (int) $stmt->fetchColumn();
+        $result = $stmt->fetchColumn();
+        if ($result === false) {
+            throw new Exception('Failed to get inserted ID');
+        }
+        return (int) $result;
     }
 
     /**
@@ -110,10 +143,13 @@ class Connection
      * @param int $id
      * @return array|false
      */
-    public function getUrlById(int $id)
+    public function getUrlById(int $id): array|false
     {
         $sql = "SELECT * FROM urls WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            return false;
+        }
         $stmt->execute(['id' => $id]);
         return $stmt->fetch();
     }
@@ -123,13 +159,16 @@ class Connection
      * @param string $name
      * @return array|false
      */
-    public function getUrlByName(string $name)
+    public function getUrlByName(string $name): array|false
     {
         $parsedUrl = parse_url($name);
-        $name = $parsedUrl['host'] ?? $name;
+        $name = is_array($parsedUrl) && isset($parsedUrl['host']) ? $parsedUrl['host'] : $name;
 
         $sql = "SELECT * FROM urls WHERE name LIKE :name";
         $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            return false;
+        }
         $stmt->execute(['name' => "%{$name}%"]);
         return $stmt->fetch();
     }
@@ -137,11 +176,16 @@ class Connection
     /**
      * Получение всех URL
      * @return array
+     * @throws Exception
      */
     public function getAllUrls(): array
     {
         $sql = "SELECT * FROM urls ORDER BY created_at DESC";
-        return $this->pdo->query($sql)->fetchAll();
+        $result = $this->pdo->query($sql);
+        if ($result === false) {
+            throw new Exception('Failed to query URLs');
+        }
+        return $result->fetchAll();
     }
 
     /**
@@ -149,6 +193,7 @@ class Connection
      * @param int $urlId
      * @param array $checkData
      * @return void
+     * @throws Exception
      */
     public function createUrlCheck(int $urlId, array $checkData): void
     {
@@ -156,6 +201,9 @@ class Connection
                 VALUES (:url_id, :status_code, :h1, :title, :description, :created_at)';
 
         $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            throw new Exception('Failed to prepare SQL statement');
+        }
         $stmt->execute([
             'url_id' => $urlId,
             'status_code' => $checkData['status_code'],
@@ -170,11 +218,15 @@ class Connection
      * Получение всех проверок для URL
      * @param int $urlId
      * @return array
+     * @throws Exception
      */
     public function getUrlChecks(int $urlId): array
     {
         $sql = "SELECT * FROM urls_checks WHERE url_id = :url_id ORDER BY created_at DESC";
         $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            throw new Exception('Failed to prepare SQL statement');
+        }
         $stmt->execute(['url_id' => $urlId]);
         return $stmt->fetchAll();
     }
@@ -184,10 +236,13 @@ class Connection
      * @param int $urlId
      * @return array|false
      */
-    public function getLastUrlCheck(int $urlId)
+    public function getLastUrlCheck(int $urlId): array|false
     {
         $sql = "SELECT * FROM urls_checks WHERE url_id = :url_id ORDER BY created_at DESC LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            return false;
+        }
         $stmt->execute(['url_id' => $urlId]);
         return $stmt->fetch();
     }
