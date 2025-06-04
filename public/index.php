@@ -29,7 +29,7 @@ $app = AppFactory::create();
 $loader = new FilesystemLoader(__DIR__ . '/../templates');
 $twig = new Environment($loader, [
     'debug' => true,
-    'cache'=>false
+    'cache' => false
 ]);
 $twig->addExtension(new DebugExtension());
 $urlController = new UrlController($twig, $app);
@@ -56,11 +56,11 @@ $app->add(function ($request, $handler) {
 $errorMiddleware->setErrorHandler(
     HttpNotFoundException::class,
     function (
-        Request   $request,
+        Request $request,
         Throwable $exception,
-        bool      $displayErrorDetails,
-        bool      $logErrors,
-        bool      $logErrorDetails
+        bool $displayErrorDetails,
+        bool $logErrors,
+        bool $logErrorDetails
     ) use ($twig) {
         $response = new \Slim\Psr7\Response();
         $body = $twig->render('404.twig');

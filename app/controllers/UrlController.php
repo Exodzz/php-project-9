@@ -95,9 +95,9 @@ class UrlController
             ->rule('lengthMax', 'count.*', 255)
             ->rule('url', 'name');
         if (!$validation->validate()) {
-            foreach ($validation->errors('name') as $message){
+            foreach ($validation->errors('name') as $message) {
                 $this->app->getContainer()->get('flash')
-                    ->addMessageNow('danger',$message);
+                    ->addMessageNow('danger', $message);
             }
             $body = $this->render('index.twig', [
                 'main'   => true,
@@ -111,7 +111,7 @@ class UrlController
                 return $this->redirectToRoute('url.index');
             } catch (\Exception | \RuntimeException $exception) {
                 $this->app->getContainer()->get('flash')
-                    ->addMessageNow('danger',$exception->getMessage());
+                    ->addMessageNow('danger', $exception->getMessage());
                 $body = $this->render('index.twig', [
                     'main'   => true,
                 ]);
