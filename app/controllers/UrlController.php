@@ -60,7 +60,6 @@ class UrlController
     {
         $flash = $this->app->getContainer()->get('flash');
         $data['flash'] = $flash->getMessages();
-        dump($data);
         return $this->view->render($template, $data);
     }
 
@@ -71,6 +70,16 @@ class UrlController
         $this->app->getContainer()->get('flash');
 
         return $response;
+    }
+
+    private function redirectToRoute(string $routeName, array $params = []): Response
+    {
+        $routeParser = $this->app->getRouteCollector()->getRouteParser();
+        $url = $routeParser->urlFor($routeName, $params);
+        return $this->app->getResponseFactory()
+            ->createResponse()
+            ->withHeader('Location', $url)
+            ->withStatus(302);
     }
 
     public function add(Request $request, Response $response): Response
@@ -90,7 +99,6 @@ class UrlController
                 $this->app->getContainer()->get('flash')
                     ->addMessageNow('danger',$message);
             }
-
             $body = $this->render('index.twig', [
                 'main'   => true,
             ]);
@@ -99,18 +107,17 @@ class UrlController
             try {
                 $this->db->createUrl((string)$urls['name']);
                 $this->app->getContainer()->get('flash')
-                    ->addMessageNow('success', 'Страница успешно добавлена');
+                    ->addMessage('success', 'Add is success!');
+                return $this->redirectToRoute('url.index');
             } catch (\Exception | \RuntimeException $exception) {
                 $this->app->getContainer()->get('flash')
                     ->addMessageNow('danger',$exception->getMessage());
                 $body = $this->render('index.twig', [
                     'main'   => true,
                 ]);
-                $response->getBody()->write($body);
-                return $response;
-            }
 
-            $response = $this->list($request, $response);
+                $response->getBody()->write($body);
+            }
         }
         return $response;
     }
