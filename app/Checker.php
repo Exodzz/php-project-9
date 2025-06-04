@@ -32,7 +32,7 @@ class Checker
             $body = (string)$response->getBody();
 
             return [
-                'status_code' => $statusCode??200,
+                'status_code' => $statusCode?:200,
                 'h1' => $this->getH1($body),
                 'title' => $this->getTitle($body),
                 'description' => $this->getDescription($body)
