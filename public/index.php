@@ -10,6 +10,7 @@ use Twig\Environment;
 use Twig\Extension\DebugExtension;
 use Twig\Loader\FilesystemLoader;
 use DI\Container;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Flash\Messages;
 
@@ -25,6 +26,7 @@ $container->set('flash', function () {
     return new Messages();
 });
 
+/** @var \Slim\App<ContainerInterface> $app */
 $app = AppFactory::create();
 $loader = new FilesystemLoader(__DIR__ . '/../templates');
 $twig = new Environment($loader, [
@@ -32,9 +34,14 @@ $twig = new Environment($loader, [
     'cache' => false
 ]);
 $twig->addExtension(new DebugExtension());
+
+// Добавляем функцию url_for в Twig
+$twig->addFunction(new \Twig\TwigFunction('url_for', function (string $routeName, array $params = []) use ($app) {
+    $routeParser = $app->getRouteCollector()->getRouteParser();
+    return $routeParser->urlFor($routeName, $params);
+}));
+
 $urlController = new UrlController($twig, $app);
-
-
 
 foreach ($urlController::ROUT_LIST as $routName => $rout) {
     $method = $rout['type'];
@@ -43,9 +50,9 @@ foreach ($urlController::ROUT_LIST as $routName => $rout) {
 
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$app->add(function ($request, $handler) {
+$app->add(function ($request, $handler) use ($container) {
     $response = $handler->handle($request);
-    $flash = $this->get('flash');
+    $flash = $container->get('flash');
     $messages = $flash->getMessages();
     if (!empty($messages)) {
         $flash->clearMessages();
