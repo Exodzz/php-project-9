@@ -65,7 +65,7 @@ class Connection
     {
         $tables = ['urls', 'urls_checks'];
         $existingTables = [];
-        
+
         $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'";
         $result = $this->pdo->query($sql);
         while ($row = $result->fetch()) {
