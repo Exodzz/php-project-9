@@ -73,19 +73,19 @@ class UrlController
         return $response;
     }
 
-    private function redirectToRoute(string $routeName, array $params = []): Response
+    private function redirectToRoute(string $routeName, array $params = [], int $status = 302): Response
     {
         $routeParser = $this->app->getRouteCollector()->getRouteParser();
         $url = $routeParser->urlFor($routeName, $params);
         return $this->app->getResponseFactory()
             ->createResponse()
             ->withHeader('Location', $url)
-            ->withStatus(302);
+            ->withStatus($status);
     }
 
     public function add(Request $request, Response $response): Response
     {
-        $urls = $request->getParsedBody()['url'];
+        $urls = $request->getParsedBody();
         $validation = new Validator(
             [
                 'name'  => $urls['name'] ?? '',
@@ -94,29 +94,33 @@ class UrlController
         );
         $validation->rule('required', 'name')
             ->rule('lengthMax', 'count.*', 255)
-            ->rule('url', 'name','');
+            ->rule('url', 'name');
         if (!$validation->validate()) {
-            $this->app->getContainer()->get('flash')
-                ->addMessageNow('danger', 'Некорректный URL');
+            foreach ($validation->errors('name') as $message) {
+                $this->app->getContainer()->get('flash')
+                    ->addMessageNow('danger', $message);
+            }
             $body = $this->render('index.twig', [
                 'main'   => true,
             ]);
             $response->getBody()->write($body);
-        } else {
-            try {
-                $id = $this->db->createUrl((string)$urls['name']);
-                $this->app->getContainer()->get('flash')
-                    ->addMessage('success', 'Страница успешно добавлена');
-                return $this->redirectToRoute('urls.show', ['id' => $id]);
-            } catch (\Exception | \RuntimeException $exception) {
-                $this->app->getContainer()->get('flash')
-                    ->addMessage('danger', 'Страница уже существует');
-                $id = $exception->getMessage();
-            } finally {
-                return $this->redirectToRoute('urls.show', ['id' => $id]);
-            }
+            return $response->withStatus(422);
         }
-        return $response;
+
+        try {
+            $this->db->createUrl((string)$urls['name']);
+            $this->app->getContainer()->get('flash')
+                ->addMessage('success', 'Add is success!');
+            return $this->redirectToRoute('url.index');
+        } catch (\Exception | \RuntimeException $exception) {
+            $this->app->getContainer()->get('flash')
+                ->addMessageNow('danger', $exception->getMessage());
+            $body = $this->render('index.twig', [
+                'main'   => true,
+            ]);
+            $response->getBody()->write($body);
+            return $response->withStatus(422);
+        }
     }
 
     public function list(Request $request, Response $response): Response
