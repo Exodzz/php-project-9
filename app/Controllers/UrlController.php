@@ -108,7 +108,7 @@ class UrlController
             try {
                 $this->db->createUrl((string)$urls['name']);
                 $this->app->getContainer()->get('flash')
-                    ->addMessage('success', 'Add is success!');
+                    ->addMessage('success', 'Страница успешно добавлена');
                 return $this->redirectToRoute('url.index');
             } catch (\Exception | \RuntimeException $exception) {
                 $this->app->getContainer()->get('flash')
