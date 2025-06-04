@@ -88,7 +88,7 @@ class UrlController
         if (!$validation->validate()) {
             foreach ($validation->errors('name') as $message){
                 $this->app->getContainer()->get('flash')
-                    ->addMessage('danger',$message);
+                    ->addMessageNow('danger',$message);
             }
 
             $body = $this->render('index.twig', [
@@ -99,10 +99,10 @@ class UrlController
             try {
                 $this->db->createUrl((string)$urls['name']);
                 $this->app->getContainer()->get('flash')
-                    ->addMessage('success', 'Страница успешно добавлена');
+                    ->addMessageNow('success', 'Страница успешно добавлена');
             } catch (\Exception | \RuntimeException $exception) {
                 $this->app->getContainer()->get('flash')
-                    ->addMessage('danger',$exception->getMessage());
+                    ->addMessageNow('danger',$exception->getMessage());
                 $body = $this->render('index.twig', [
                     'main'   => true,
                 ]);

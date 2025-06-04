@@ -11,6 +11,7 @@ use Twig\Extension\DebugExtension;
 use Twig\Loader\FilesystemLoader;
 use DI\Container;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Flash\Messages;
 
 session_start();
 
@@ -19,6 +20,10 @@ $dotenv->safeload();
 
 $container = new Container();
 AppFactory::setContainer($container);
+
+$container->set('flash', function () {
+    return new Messages();
+});
 
 $app = AppFactory::create();
 $loader = new FilesystemLoader(__DIR__ . '/../templates');
@@ -30,12 +35,23 @@ $twig->addExtension(new DebugExtension());
 $urlController = new UrlController($twig, $app);
 
 
+
 foreach ($urlController::ROUT_LIST as $routName => $rout) {
     $method = $rout['type'];
     $app->$method($rout['path'], [$urlController, $rout['method']])->setName($routName);
 }
 
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+$app->add(function ($request, $handler) {
+    $response = $handler->handle($request);
+    $flash = $this->get('flash');
+    $messages = $flash->getMessages();
+    if (!empty($messages)) {
+        $flash->clearMessages();
+    }
+    return $response;
+});
 
 $errorMiddleware->setErrorHandler(
     HttpNotFoundException::class,
