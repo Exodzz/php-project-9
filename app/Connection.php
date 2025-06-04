@@ -96,9 +96,12 @@ class Connection
      */
     public function getUrlByName(string $name)
     {
-        $sql = "SELECT * FROM urls WHERE name = :name";
+        $parsedUrl = parse_url($name);
+        $name = $parsedUrl['host'] ?? $name;
+
+        $sql = "SELECT * FROM urls WHERE name LIKE :name";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(['name' => $name]);
+        $stmt->execute(['name' => "%{$name}%"]);
         return $stmt->fetch();
     }
 
@@ -116,23 +119,22 @@ class Connection
      * Создание новой проверки URL
      * @param int $urlId
      * @param array $checkData
-     * @return int
+     * @return void
      */
-    public function createUrlCheck(int $urlId, array $checkData): int
+    public function createUrlCheck(int $urlId, array $checkData): void
     {
-        $sql = "INSERT INTO urls_checks (url_id, status_code, h1, title, description, created_at) 
-                VALUES (:url_id, :status_code, :h1, :title, :description, :created_at) 
-                RETURNING id";
+        $sql = 'INSERT INTO urls_checks (url_id, status_code, h1, title, description, created_at) 
+                VALUES (:url_id, :status_code, :h1, :title, :description, :created_at)';
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             'url_id' => $urlId,
             'status_code' => $checkData['status_code'],
-            'h1' => $checkData['h1'] ?? null,
-            'title' => $checkData['title'] ?? null,
-            'description' => $checkData['description'] ?? null,
+            'h1' => $checkData['h1'],
+            'title' => $checkData['title'],
+            'description' => $checkData['description'],
             'created_at' => date('Y-m-d H:i:s')
         ]);
-        return (int) $stmt->fetchColumn();
     }
 
     /**

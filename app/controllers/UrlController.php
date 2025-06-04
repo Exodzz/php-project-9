@@ -2,6 +2,7 @@
 
 namespace Hexlet\Code\Controllers;
 
+use Hexlet\Code\Checker;
 use Hexlet\Code\Connection;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -37,9 +38,9 @@ class UrlController
             'method' => 'show',
         ],
         'urls.checks' => [
-            'path'   => '/urls/{id}/check',
+            'path'   => '/urls/{id}/checks',
             'type'   => 'post',
-            'method' => 'show',
+            'method' => 'check',
         ]
     ];
     public App $app;
@@ -84,7 +85,7 @@ class UrlController
 
     public function add(Request $request, Response $response): Response
     {
-        $urls = $request->getParsedBody();
+        $urls = $request->getParsedBody()['url'];
         $validation = new Validator(
             [
                 'name'  => $urls['name'] ?? '',
@@ -126,6 +127,7 @@ class UrlController
     {
         $urls = $this->db->getAllUrls();
         foreach ($urls as &$url) {
+            $url['name'] = parse_url($url['name'])['host'];
             $url['check'] = $this->db->getLastUrlCheck($url['id']);
         }
         $body = $this->render('urls/index.twig', [
@@ -148,6 +150,7 @@ class UrlController
         if (!$url) {
             return $this->notFound($response);
         }
+        $url['name'] = parse_url($url['name'])['host'];
 
         $checks = $this->db->getUrlChecks($id);
         $body = $this->render('urls/detail.twig', [
@@ -169,5 +172,36 @@ class UrlController
         $body = $this->render('404.twig');
         $response->getBody()->write($body);
         return $response;
+    }
+
+    public function check(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $url = $this->db->getUrlById($id);
+        if (!$url) {
+            return $this->notFound($response);
+        }
+
+        $checker = new Checker();
+        $checkData = $checker->check($url['name']);
+
+        try {
+            $this->db->createUrlCheck($id, $checkData);
+            $this->app->getContainer()->get('flash')
+                ->addMessage('success', 'Страница успешно проверена');
+        } catch (\Exception $e) {
+            $this->app->getContainer()->get('flash')
+                ->addMessage('danger', 'Ошибка при проверке: ' . $e->getMessage());
+        }
+
+        $errors = $checker->getErrors();
+        if (!empty($errors)) {
+            foreach ($errors as $error) {
+                $this->app->getContainer()->get('flash')
+                    ->addMessage('warning', $error);
+            }
+        }
+
+        return $this->redirectToRoute('urls.show', ['id' => $id]);
     }
 }
