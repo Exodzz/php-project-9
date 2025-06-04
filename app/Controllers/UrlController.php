@@ -65,7 +65,8 @@ class UrlController
         $this->setFlash($container);
     }
 
-    private function setFlash(ContainerInterface $container){
+    private function setFlash(ContainerInterface $container)
+    {
         $this->flash = new Messages();
         $container->set('flash', function () {
             return $this->flash;
