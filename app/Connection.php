@@ -25,19 +25,26 @@ class Connection
      */
     public function connect()
     {
-        if ($_ENV) {
-            $database = $_ENV;
-        }
-
-        if (isset($_ENV['host'])) {
-            $params['host'] = $database['host'] ?? null;
-            $params['port'] = $database['port'] ?? 5432;
-            $params['database'] = isset($database['database']) ? ltrim($database['database'], '/') : null;
-            $params['user'] = $database['user'] ?? null;
-            $params['pass'] = $database['password'] ?: $database['pass'];
+        if (isset($_ENV['DATABASE_URL'])) {
+            $databaseUrl = parse_url($_ENV['DATABASE_URL']);
+            $params = [
+                'host' => $databaseUrl['host'],
+                'port' => $databaseUrl['port'] ?? 5432,
+                'database' => ltrim($databaseUrl['path'], '/'),
+                'user' => $databaseUrl['user'],
+                'pass' => $databaseUrl['pass']
+            ];
+        } elseif (isset($_ENV['host'])) {
+            $params = [
+                'host' => $_ENV['host'] ?? null,
+                'port' => $_ENV['port'] ?? 5432,
+                'database' => isset($_ENV['database']) ? ltrim($_ENV['database'], '/') : null,
+                'user' => $_ENV['user'] ?? null,
+                'pass' => $_ENV['password'] ?: $_ENV['pass']
+            ];
         } else {
-        // чтение параметров в файле конфигурации
-            $params = parse_url($_ENV['DATABASE_URL']);
+            // чтение параметров в файле конфигурации
+            $params = parse_ini_file(__DIR__ . '/../database.env');
         }
 
         // подключение к базе данных postgresql
@@ -49,7 +56,7 @@ class Connection
             $params['user'],
             $params['pass']
         );
-        dump($conStr);
+
         $pdo = new PDO($conStr);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
