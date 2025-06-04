@@ -1,7 +1,7 @@
 <?php
 
 // Подключение автозагрузки через composer
-require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Hexlet\Code\Controllers\UrlController;
 use Slim\Exception\HttpNotFoundException;
