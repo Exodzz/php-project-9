@@ -46,7 +46,7 @@ class Checker
         }
 
         return [
-            'status_code' => null,
+            'status_code' => 500,
             'h1' => null,
             'title' => null,
             'description' => null
