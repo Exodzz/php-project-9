@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS urls_checks (
     description varchar(255),
     created_at timestamp);
 
-INSERT INTO urls (name, created_at) VALUES
-    ('https://google.com/', NOW()),
-    ('https://hexlet.io/', NOW())
-ON CONFLICT (name) DO NOTHING;
+INSERT INTO urls (name, created_at)
+VALUES ('https://hexlet.io', null);
+
+INSERT INTO urls (name, created_at)
+VALUES ('https://google.com', null);
