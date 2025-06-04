@@ -45,14 +45,14 @@ class UrlController
             'method' => 'check',
         ]
     ];
-    /** @var App */
+    /** @var App<Container> */
     public App $app;
     private Environment $view;
     private Connection $db;
     private Messages $flash;
 
     /**
-     * @param App $app
+     * @param App<Container> $app
      */
     public function __construct(Environment $view, App $app)
     {
@@ -60,10 +60,13 @@ class UrlController
         $this->app = $app;
         $this->db = new Connection();
         $container = $this->app->getContainer();
+        if (!$container instanceof Container) {
+            throw new \RuntimeException('Container is not initialized or has wrong type');
+        }
         $this->setFlash($container);
     }
 
-    private function setFlash(Container $container)
+    private function setFlash(Container $container): void
     {
         $this->flash = new Messages();
         $container->set('flash', function () {
