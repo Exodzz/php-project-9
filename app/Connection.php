@@ -15,6 +15,7 @@ class Connection
     public function __construct()
     {
         $this->pdo = $this->connect();
+        $this->importDB();
     }
 
     /**
@@ -54,6 +55,27 @@ class Connection
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
         return $pdo;
+    }
+
+    /**
+     * Проверка наличия таблиц и их импорт при необходимости
+     * @return void
+     */
+    public function importDB(): void
+    {
+        $tables = ['urls', 'urls_checks'];
+        $existingTables = [];
+        
+        $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'";
+        $result = $this->pdo->query($sql);
+        while ($row = $result->fetch()) {
+            $existingTables[] = $row['table_name'];
+        }
+
+        if (count(array_diff($tables, $existingTables)) > 0) {
+            $sql = file_get_contents(__DIR__ . '/../database.sql');
+            $this->pdo->exec($sql);
+        }
     }
 
     /**
