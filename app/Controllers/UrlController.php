@@ -94,12 +94,10 @@ class UrlController
         );
         $validation->rule('required', 'name')
             ->rule('lengthMax', 'count.*', 255)
-            ->rule('url', 'name');
+            ->rule('url', 'name','');
         if (!$validation->validate()) {
-            foreach ($validation->errors('name') as $message) {
-                $this->app->getContainer()->get('flash')
-                    ->addMessageNow('danger', $message);
-            }
+            $this->app->getContainer()->get('flash')
+                ->addMessageNow('danger', 'Некорректный URL');
             $body = $this->render('index.twig', [
                 'main'   => true,
             ]);
