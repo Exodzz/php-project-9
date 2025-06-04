@@ -36,7 +36,7 @@ class Connection
             $params['password'] = isset($database['password']) ? $database['password'] : null;
         } else {
         // чтение параметров в файле конфигурации
-            $params = parse_ini_file(__DIR__ . '/../database.env');
+            $params = parse_url($_ENV['DATABASE_URL']);
         }
 
         // подключение к базе данных postgresql
