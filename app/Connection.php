@@ -94,7 +94,7 @@ class Connection
     {
         $double = $this->getUrlByName($name);
         if ($double) {
-            throw new \RuntimeException('Страница уже существует');
+            throw new \RuntimeException($double['id']);
         }
         $sql = "INSERT INTO urls (name, created_at) VALUES (:name, :created_at) RETURNING id";
         $stmt = $this->pdo->prepare($sql);

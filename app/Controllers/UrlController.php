@@ -112,12 +112,10 @@ class UrlController
                 return $this->redirectToRoute('urls.show', ['id' => $id]);
             } catch (\Exception | \RuntimeException $exception) {
                 $this->app->getContainer()->get('flash')
-                    ->addMessageNow('danger', $exception->getMessage());
-                $body = $this->render('index.twig', [
-                    'main'   => true,
-                ]);
-
-                $response->getBody()->write($body);
+                    ->addMessage('danger', 'Страница уже существует');
+                $id = $exception->getMessage();
+            } finally {
+                return $this->redirectToRoute('urls.show', ['id' => $id]);
             }
         }
         return $response;
