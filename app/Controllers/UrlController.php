@@ -4,6 +4,7 @@ namespace Hexlet\Code\Controllers;
 
 use Hexlet\Code\Checker;
 use Hexlet\Code\Connection;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
@@ -43,24 +44,33 @@ class UrlController
             'method' => 'check',
         ]
     ];
+    /** @var App<ContainerInterface> */
     public App $app;
     private Environment $view;
     private Connection $db;
+    private Messages $flash;
 
+    /**
+     * @param App<ContainerInterface> $app
+     */
     public function __construct(Environment $view, App $app)
     {
         $this->view = $view;
         $this->app = $app;
         $this->db = new Connection();
-        $this->app->getContainer()->set('flash', function () {
+        $container = $this->app->getContainer();
+        if ($container === null) {
+            throw new \RuntimeException('Container is not initialized');
+        }
+        $container->set('flash', function () {
             return new Messages();
         });
+        $this->flash = $container->get('flash');
     }
 
     private function render(string $template, array $data = []): string
     {
-        $flash = $this->app->getContainer()->get('flash');
-        $data['flash'] = $flash->getMessages();
+        $data['flash'] = $this->flash->getMessages();
         return $this->view->render($template, $data);
     }
 
@@ -68,8 +78,6 @@ class UrlController
     {
         $body = $this->render('index.twig', ['main' => true]);
         $response->getBody()->write($body);
-        $this->app->getContainer()->get('flash');
-
         return $response;
     }
 
@@ -85,37 +93,39 @@ class UrlController
 
     public function add(Request $request, Response $response): Response
     {
-        $urls = $request->getParsedBody()['url'];
+        $parsedBody = $request->getParsedBody();
+        if (!is_array($parsedBody) || !isset($parsedBody['url']) || !is_array($parsedBody['url'])) {
+            $this->flash->addMessageNow('danger', 'Некорректные данные формы');
+            $body = $this->render('index.twig', ['main' => true]);
+            $response->getBody()->write($body);
+            return $response->withStatus(422);
+        }
+
+        $urls = $parsedBody['url'];
         $validation = new Validator(
             [
                 'name'  => $urls['name'] ?? '',
-                'count' => strlen((string)$urls['name'])
+                'count' => strlen((string)($urls['name'] ?? ''))
             ]
         );
         $validation->rule('required', 'name')
             ->rule('lengthMax', 'count.*', 255)
             ->rule('url', 'name', '');
         if (!$validation->validate()) {
-            $this->app->getContainer()->get('flash')
-                ->addMessageNow('danger', 'Некорректный URL');
-            $body = $this->render('index.twig', [
-                'main'   => true,
-            ]);
+            $this->flash->addMessageNow('danger', 'Некорректный URL');
+            $body = $this->render('index.twig', ['main' => true]);
             $response->getBody()->write($body);
             return $response->withStatus(422);
-        } else {
-            try {
-                $id = $this->db->createUrl((string)$urls['name']);
-                $this->app->getContainer()->get('flash')
-                    ->addMessage('success', 'Страница успешно добавлена');
-                return $this->redirectToRoute('urls.show', ['id' => $id]);
-            } catch (\Exception | \RuntimeException $exception) {
-                $this->app->getContainer()->get('flash')
-                    ->addMessage('danger', 'Страница уже существует');
-                $id = $exception->getMessage();
-            } finally {
-                return $this->redirectToRoute('urls.show', ['id' => $id]);
-            }
+        }
+
+        try {
+            $id = $this->db->createUrl((string)$urls['name']);
+            $this->flash->addMessage('success', 'Страница успешно добавлена');
+            return $this->redirectToRoute('urls.show', ['id' => $id]);
+        } catch (\Exception | \RuntimeException $exception) {
+            $this->flash->addMessage('danger', 'Страница уже существует');
+            $id = $exception->getMessage();
+            return $this->redirectToRoute('urls.show', ['id' => $id]);
         }
     }
 
@@ -183,18 +193,15 @@ class UrlController
 
         try {
             $this->db->createUrlCheck($id, $checkData);
-            $this->app->getContainer()->get('flash')
-                ->addMessage('success', 'Страница успешно проверена');
+            $this->flash->addMessage('success', 'Страница успешно проверена');
         } catch (\Exception $e) {
-            $this->app->getContainer()->get('flash')
-                ->addMessage('danger', 'Ошибка при проверке: ' . $e->getMessage());
+            $this->flash->addMessage('danger', 'Ошибка при проверке: ' . $e->getMessage());
         }
 
         $errors = $checker->getErrors();
         if (!empty($errors)) {
             foreach ($errors as $error) {
-                $this->app->getContainer()->get('flash')
-                    ->addMessage('warning', $error);
+                $this->flash->addMessage('warning', $error);
             }
         }
 
