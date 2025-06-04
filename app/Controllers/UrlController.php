@@ -63,7 +63,7 @@ class UrlController
         $this->setFlash($container);
     }
 
-    private function setFlash( Container $container)
+    private function setFlash(Container $container)
     {
         $this->flash = new Messages();
         $container->set('flash', function () {
