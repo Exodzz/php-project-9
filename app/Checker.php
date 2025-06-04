@@ -38,11 +38,11 @@ class Checker
                 'description' => $this->getDescription($body)
             ];
         } catch (ConnectException $e) {
-            $this->errors[] = "Не удалось подключиться к сайту: {$e->getMessage()}";
+            $this->errors[] = "Не удалось подключиться к сайту";
         } catch (RequestException $e) {
-            $this->errors[] = "Ошибка при запросе: {$e->getMessage()}";
+            $this->errors[] = "Ошибка при запросе";
         } catch (GuzzleException $e) {
-            $this->errors[] = "Произошла ошибка: {$e->getMessage()}";
+            $this->errors[] = "Произошла ошибка";
         }
 
         return [

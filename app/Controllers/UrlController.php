@@ -106,10 +106,10 @@ class UrlController
             $response->getBody()->write($body);
         } else {
             try {
-                $this->db->createUrl((string)$urls['name']);
+                $id = $this->db->createUrl((string)$urls['name']);
                 $this->app->getContainer()->get('flash')
                     ->addMessage('success', 'Страница успешно добавлена');
-                return $this->redirectToRoute('url.index');
+                return $this->redirectToRoute('urls.show', ['id' => $id]);
             } catch (\Exception | \RuntimeException $exception) {
                 $this->app->getContainer()->get('flash')
                     ->addMessageNow('danger', $exception->getMessage());
