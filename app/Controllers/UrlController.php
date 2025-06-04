@@ -59,13 +59,13 @@ class UrlController
         $this->app = $app;
         $this->db = new Connection();
         $container = $this->app->getContainer();
-        if ($container === null) {
+        if (!$container instanceof ContainerInterface) {
             throw new \RuntimeException('Container is not initialized');
         }
+        $this->flash = new Messages();
         $container->set('flash', function () {
-            return new Messages();
+            return $this->flash;
         });
-        $this->flash = $container->get('flash');
     }
 
     private function render(string $template, array $data = []): string

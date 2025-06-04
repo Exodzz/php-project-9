@@ -31,6 +31,9 @@ class Connection
             if ($databaseUrl === false) {
                 throw new Exception('Invalid DATABASE_URL format');
             }
+            if (!isset($databaseUrl['host'], $databaseUrl['path'], $databaseUrl['user'], $databaseUrl['pass'])) {
+                throw new Exception('Missing required database parameters in DATABASE_URL');
+            }
             $params = [
                 'host' => $databaseUrl['host'],
                 'port' => $databaseUrl['port'] ?? 5432,
