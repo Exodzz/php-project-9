@@ -12,7 +12,6 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use Valitron\Validator;
-use function DI\string;
 
 class UrlController
 {
@@ -61,7 +60,8 @@ class UrlController
     {
         $body = $this->view->render('index.twig', ['main' => true]);
         $response->getBody()->write($body);
-        $this->app->getContainer()->get('flash')->addMessage('warning', 'Проверка была выполнена успешно, но сервер ответил с ошибкой');
+        $this->app->getContainer()->get('flash')
+            ->addMessage('warning', 'Проверка была выполнена успешно, но сервер ответил с ошибкой');
         dump($this->app->getContainer()->get('flash'));
         return $response;
     }
@@ -88,9 +88,7 @@ class UrlController
         } else {
             try {
                 $this->db->createUrl((string)$urls['name']);
-
-            } catch (\Exception|\RuntimeException $exception) {
-
+            } catch (\Exception | \RuntimeException $exception) {
                 $body = $this->view->render('index.twig', [
                     'main'   => true,
                     'errors' => [$exception->getMessage()]
@@ -103,7 +101,6 @@ class UrlController
             $response = $this->list($request, $response);
         }
         return $response;
-
     }
 
 

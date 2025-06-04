@@ -32,7 +32,6 @@ $urlController = new UrlController($twig, $app);
 foreach ($urlController::ROUT_LIST as $routName => $rout) {
     $method = $rout['type'];
     $app->$method($rout['path'], [$urlController, $rout['method']])->setName($routName);
-
 }
 
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
@@ -40,11 +39,11 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 $errorMiddleware->setErrorHandler(
     HttpNotFoundException::class,
     function (
-        Request   $request,
+        Request $request,
         Throwable $exception,
-        bool      $displayErrorDetails,
-        bool      $logErrors,
-        bool      $logErrorDetails
+        bool $displayErrorDetails,
+        bool $logErrors,
+        bool $logErrorDetails
     ) use ($twig) {
         $response = new \Slim\Psr7\Response();
         $body = $twig->render('404.twig');

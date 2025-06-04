@@ -18,7 +18,6 @@ class Checker
     public function __construct(int $urlId)
     {
         $this->urlId = $urlId;
-
     }
 
 
@@ -33,7 +32,6 @@ class Checker
 
             $url = $this->get('router')->urlFor('urls.show', ['id' => $url_id]);
         } catch (ClientException $e) {
-
         }
     }
 }
