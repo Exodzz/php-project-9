@@ -12,8 +12,3 @@ CREATE TABLE IF NOT EXISTS urls_checks (
     description text,
     created_at timestamp);
 
-INSERT INTO urls (name, created_at)
-VALUES ('https://hexlet.io', null);
-
-INSERT INTO urls (name, created_at)
-VALUES ('https://google.com', null);
