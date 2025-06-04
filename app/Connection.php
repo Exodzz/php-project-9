@@ -34,7 +34,7 @@ class Connection
             $params['port'] = $database['port'] ?? 5432;
             $params['database'] = isset($database['database']) ? ltrim($database['database'], '/') : null;
             $params['user'] = $database['user'] ?? null;
-            $params['pass'] = $database['password'] ?:$database['pass'];
+            $params['pass'] = $database['password'] ?: $database['pass'];
         } else {
         // чтение параметров в файле конфигурации
             $params = parse_url($_ENV['DATABASE_URL']);
@@ -49,7 +49,7 @@ class Connection
             $params['user'],
             $params['pass']
         );
-
+        dump($conStr);
         $pdo = new PDO($conStr);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
