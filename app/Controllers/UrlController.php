@@ -94,7 +94,7 @@ class UrlController
         );
         $validation->rule('required', 'name')
             ->rule('lengthMax', 'count.*', 255)
-            ->rule('url', 'name','');
+            ->rule('url', 'name', '');
         if (!$validation->validate()) {
             $this->app->getContainer()->get('flash')
                 ->addMessageNow('danger', 'Некорректный URL');
