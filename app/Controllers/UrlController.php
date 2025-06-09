@@ -58,7 +58,7 @@ class UrlController
     {
         $this->view = $view;
         $this->app = $app;
-        $this->db = new Connection();
+        $this->db = new Connection(Checker::FIELDS_LENGTH);
         $container = $this->app->getContainer();
 
         $this->setFlash($container);
@@ -127,7 +127,7 @@ class UrlController
             $this->flash->addMessage('success', 'Страница успешно добавлена');
             return $this->redirectToRoute('urls.show', ['id' => $id]);
         } catch (\Exception | \RuntimeException $exception) {
-            $this->flash->addMessage('danger', 'Страница уже существует');
+            $this->flash->addMessage('warning', 'Страница уже существует');
             $id = $exception->getMessage();
             return $this->redirectToRoute('urls.show', ['id' => $id]);
         }
@@ -197,9 +197,11 @@ class UrlController
 
         try {
             $this->db->createUrlCheck($id, $checkData);
-            $this->flash->addMessage('success', 'Страница успешно проверена');
+            if (!$checker->getErrors()) {
+                $this->flash->addMessage('success', 'Страница успешно проверена');
+            }
         } catch (\Exception $e) {
-            $this->flash->addMessage('danger', 'Ошибка при проверке: ' . $e->getMessage());
+            $this->flash->addMessage('danger', 'Ошибка при проверке');
         }
 
         $errors = $checker->getErrors();

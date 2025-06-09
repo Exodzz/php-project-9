@@ -12,9 +12,10 @@ use PDOStatement;
 class Connection
 {
     private PDO $pdo;
-
-    public function __construct()
+    private array $validateConfig = [];
+    public function __construct(array $validateConfig)
     {
+        $this->validateConfig = $validateConfig;
         $this->pdo = $this->connect();
         $this->importDB();
     }
@@ -35,19 +36,19 @@ class Connection
                 throw new Exception('Missing required database parameters in DATABASE_URL');
             }
             $params = [
-                'host' => $databaseUrl['host'],
-                'port' => $databaseUrl['port'] ?? 5432,
+                'host'     => $databaseUrl['host'],
+                'port'     => $databaseUrl['port'] ?? 5432,
                 'database' => ltrim($databaseUrl['path'], '/'),
-                'user' => $databaseUrl['user'],
-                'pass' => $databaseUrl['pass']
+                'user'     => $databaseUrl['user'],
+                'pass'     => $databaseUrl['pass']
             ];
         } elseif (isset($_ENV['host'])) {
             $params = [
-                'host' => $_ENV['host'],
-                'port' => $_ENV['port'] ?? 5432,
+                'host'     => $_ENV['host'],
+                'port'     => $_ENV['port'] ?? 5432,
                 'database' => isset($_ENV['database']) ? ltrim($_ENV['database'], '/') : '',
-                'user' => $_ENV['user'] ?? '',
-                'pass' => $_ENV['password'] ?? $_ENV['pass'] ?? ''
+                'user'     => $_ENV['user'] ?? '',
+                'pass'     => $_ENV['password'] ?? $_ENV['pass'] ?? ''
             ];
         } else {
             $params = parse_ini_file(__DIR__ . '/../database.env');
@@ -128,14 +129,27 @@ class Connection
             throw new Exception('Failed to prepare SQL statement');
         }
         $stmt->execute([
-            'name' => $name,
+            'name'       => $name,
             'created_at' => date('Y-m-d H:i:s')
         ]);
         $result = $stmt->fetchColumn();
         if ($result === false) {
             throw new Exception('Failed to get inserted ID');
         }
-        return (int) $result;
+        return (int)$result;
+    }
+
+    /**
+     * Валидация полей
+     */
+    private function validateFields(array &$fields): array
+    {
+        foreach ($this->validateConfig as $field => $length) {
+            if ($fields[$field] > $length) {
+                $fields[$field] = mb_strimwidth($fields[$field], 0, $length - 3, "...", 'UTF-8');
+            }
+        }
+        return $fields;
     }
 
     /**
@@ -197,6 +211,7 @@ class Connection
      */
     public function createUrlCheck(int $urlId, array $checkData): void
     {
+        $this->validateFields($checkData);
         $sql = 'INSERT INTO urls_checks (url_id, status_code, h1, title, description, created_at) 
                 VALUES (:url_id, :status_code, :h1, :title, :description, :created_at)';
 
@@ -205,12 +220,12 @@ class Connection
             throw new Exception('Failed to prepare SQL statement');
         }
         $stmt->execute([
-            'url_id' => $urlId,
+            'url_id'      => $urlId,
             'status_code' => $checkData['status_code'],
-            'h1' => $checkData['h1'],
-            'title' => $checkData['title'],
+            'h1'          => $checkData['h1'],
+            'title'       => $checkData['title'],
             'description' => $checkData['description'],
-            'created_at' => date('Y-m-d H:i:s')
+            'created_at'  => date('Y-m-d H:i:s')
         ]);
     }
 
